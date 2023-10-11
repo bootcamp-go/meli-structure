@@ -1,8 +1,7 @@
-package mid_test
+package middlewares_test
 
 import (
-	"bootcamp-web/internal/handler"
-	"bootcamp-web/internal/handler/mid"
+	"bootcamp-web/platform/web/middlewares"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -12,7 +11,7 @@ import (
 )
 
 func TestNewErrorReturnNilIfHandlerReturnNil(t *testing.T) {
-	errMiddleware := mid.NewError()
+	errMiddleware := middlewares.NewErrorMiddleware()
 	err := errMiddleware(func(w http.ResponseWriter, r *http.Request) error {
 		return nil
 	})(nil, nil)
@@ -21,7 +20,7 @@ func TestNewErrorReturnNilIfHandlerReturnNil(t *testing.T) {
 }
 
 func TestNewErrorReturnInternalServerErrorIfHandlerAnyError(t *testing.T) {
-	errMiddleware := mid.NewError()
+	errMiddleware := middlewares.NewErrorMiddleware()
 
 	request := httptest.NewRequest("GET", "/", nil)
 	writer := httptest.NewRecorder()
@@ -38,13 +37,13 @@ func TestNewErrorReturnInternalServerErrorIfHandlerAnyError(t *testing.T) {
 }
 
 func TestNewErrorReturnCustomError(t *testing.T) {
-	errMiddleware := mid.NewError()
+	errMiddleware := middlewares.NewErrorMiddleware()
 
 	request := httptest.NewRequest("GET", "/", nil)
 	writer := httptest.NewRecorder()
 
 	err := errMiddleware(func(w http.ResponseWriter, r *http.Request) error {
-		return handler.NewError(http.StatusBadRequest, "invalid request")
+		return middlewares.NewError(http.StatusBadRequest, "invalid request")
 	})(writer, request)
 
 	require.NoError(t, err)

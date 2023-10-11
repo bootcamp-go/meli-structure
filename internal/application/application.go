@@ -1,11 +1,11 @@
 package application
 
 import (
-	"bootcamp-web/internal"
-	"bootcamp-web/internal/handler"
-	"bootcamp-web/internal/handler/mid"
-	"bootcamp-web/internal/storage/storagememory"
+	"bootcamp-web/internal/product"
+	"bootcamp-web/internal/transactioner"
+	"bootcamp-web/internal/warehouse"
 	"bootcamp-web/platform/web"
+	"bootcamp-web/platform/web/middlewares"
 	"context"
 	"log"
 	"net"
@@ -23,8 +23,8 @@ type Application struct {
 
 // New creates a new un-started application.
 func New() *Application {
-	muxer := web.NewMux(mid.NewError(), mid.NewPanic())
-	registerRoutes(storagememory.NewWarehouseRepository(), muxer)
+	muxer := web.NewMux(middlewares.NewErrorMiddleware(), middlewares.NewPanic())
+	registerRoutes(muxer)
 	httpServer := &http.Server{Handler: muxer}
 
 	port := os.Getenv("PORT")
@@ -56,11 +56,32 @@ func (a *Application) Stop() error {
 	return a.server.Shutdown(context.Background())
 }
 
-func registerRoutes(warehouseRepository internal.WarehouseRepository, m *web.Muxer) {
-	m.Handle("POST", "/warehouses",
-		handler.NewAddWarehouse(warehouseRepository))
-	m.Handle("POST", "/warehouses/{warehouse_id}/products",
-		handler.NewAddProductStock(warehouseRepository))
-	m.Handle("POST", "/warehouses/{warehouse_id}/orders",
-		handler.NewCreateOrder(warehouseRepository, internal.NewOrderService(warehouseRepository)))
+func registerRoutes(m *web.Muxer) {
+	// dependencies
+	// - products
+	catalogProducts := product.NewCatalogProductMap(
+		make(map[string]product.Product),
+	)
+	// - warehouse
+	warehouseStorage := warehouse.NewStorageWarehouseDefaultValidator(
+		warehouse.NewStorageWarehouseCatalogValidator(
+			warehouse.NewStorageWarehouseMap(
+				make(map[int]warehouse.WarehouseDB),
+				0,
+			),
+			catalogProducts,
+		),
+	)
+	warehouseHandler := warehouse.NewHandlerWarehouse(warehouseStorage)
+
+	// - transactioner
+	tr := transactioner.NewTransactionerDefault(warehouseStorage)
+	trHandler := transactioner.NewHandlerTransactioner(tr)
+
+	// routes
+	// - warehouse
+	m.Handle("POST", "/warehouses", warehouseHandler.AddWarehouse())
+	m.Handle("POST", "/warehouses/{warehouse_id}/products", warehouseHandler.AddProductStock())
+	// - transactioner
+	m.Handle("POST", "/orders", trHandler.Fulfill())
 }

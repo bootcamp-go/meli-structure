@@ -1,7 +1,7 @@
-package mid_test
+package middlewares_test
 
 import (
-	"bootcamp-web/internal/handler/mid"
+	"bootcamp-web/platform/web/middlewares"
 	"net/http"
 	"testing"
 
@@ -9,7 +9,7 @@ import (
 )
 
 func TestNewPanic(t *testing.T) {
-	panicMiddleware := mid.NewPanic()
+	panicMiddleware := middlewares.NewPanic()
 	err := panicMiddleware(func(w http.ResponseWriter, r *http.Request) error {
 		panic("any panic")
 	})(nil, nil)

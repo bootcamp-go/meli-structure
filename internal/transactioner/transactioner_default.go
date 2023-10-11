@@ -1,62 +1,70 @@
 package transactioner
 
 import (
-	"bootcamp-web/internal/order"
 	"bootcamp-web/internal/warehouse"
+	"errors"
 )
 
 type TransactionerDefault struct {
-	// serviceWarehouse is the service to manage warehouses
-	serviceWarehouse warehouse.ServiceWarehouse
-
-	// serviceOrder is the service to manage orders
-	serviceOrder order.ServiceOrder
+	// storageWarehouse is the storage of the warehouse
+	storageWarehouse warehouse.StorageWarehouse
 }
 
 // NewTransactionerDefault returns a new instance of TransactionerDefault
-func NewTransactionerDefault(serviceWarehouse warehouse.ServiceWarehouse, serviceOrder order.ServiceOrder) (t *TransactionerDefault) {
+func NewTransactionerDefault(storageWarehouse warehouse.StorageWarehouse) (t *TransactionerDefault) {
 	t = &TransactionerDefault{
-		serviceWarehouse: serviceWarehouse,
-		serviceOrder:     serviceOrder,
+		storageWarehouse: storageWarehouse,
 	}
 	return
 }
 
 // Fulfill processes the transaction between the order and the warehouse
-func (t *TransactionerDefault) Fullfill(orderId, warehouseId int) (err error) {
-	// get the order
-	or, err := t.serviceOrder.FindById(orderId)
-	if err != nil {
-		err = ErrTransactionerOrderNotFound
-		return
+func (t *TransactionerDefault) Fullfill(order Order, warehouseName string) (err error) {
+	// validation
+	// - check if order quantity is positive
+	for _, qt := range order.Products {
+		if qt <= 0 {
+			err = ErrTransactionerOrderQuantityNotPositive
+			return
+		}
 	}
-
+	
 	// get the warehouse
-	wh, err := t.serviceWarehouse.FindById(warehouseId)
+	wh, err := t.storageWarehouse.FindByName(warehouseName)
 	if err != nil {
 		err = ErrTransactionerWarehouseNotFound
 		return
 	}
 
 	// process the transaction
-	for prOr, qt := range or.Products {
-		prWh, ok := wh.Attributes.Stock[prOr]
+	for prOr, qtOr := range order.Products {
+		// check if product is in the warehouse
+		qtWh, ok := wh.Stock[prOr]
 		if !ok {
 			err = ErrTransactionerWarehouseProductNotFound
 			return
 		}
 
-		if prWh < qt {
+		// check if product quantity is available in the warehouse
+		if qtWh < qtOr {
 			err = ErrTransactionerOrderQuantityNotAvailable
 			return
 		}
-			
-		wh.Attributes.Stock[prOr] = prWh - qt
+
+		// update the product quantity in the warehouse
+		qtWh -= qtOr
+		wh.Stock[prOr] = qtWh
 	}
 
-	// commit the transaction
-	err = t.serviceWarehouse.Update(&wh)
+	// update the warehouse
+	err = t.storageWarehouse.Update(&wh)
 	if err != nil {
+		switch {
+		case errors.Is(err, warehouse.ErrStorageWarehouseProductNotFound):
+			err = ErrTransactionerWarehouseProductNotFound
+		case errors.Is(err, warehouse.ErrStorageWarehouseInvalidQuantity):
+			err = ErrTransactionerWarehouseProductQuantityInvalid
+		}
 		return
 	}
 

@@ -1,5 +1,10 @@
 package product
 
+// NewCatalogProductMap creates a new catalog of products.
+func NewCatalogProductMap(db map[string]Product) *CatalogProductMap {
+	return &CatalogProductMap{db: db}
+}
+
 // CatalogProductMap is a struct that represents a catalog of products
 type CatalogProductMap struct {
 	// db is a map that stores a catalog of products (key: name, value: product)

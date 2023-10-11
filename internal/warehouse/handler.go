@@ -2,9 +2,14 @@ package warehouse
 
 import (
 	"bootcamp-web/platform/web"
-	"bootcamp-web/platform/web/validator"
+	"bootcamp-web/platform/web/middlewares"
 	"net/http"
 )
+
+// NewHandlerWarehouse creates a new handler of a warehouse
+func NewHandlerWarehouse(st StorageWarehouse) *HandlerWarehouse {
+	return &HandlerWarehouse{st: st}
+}
 
 // HandlerWarehouse is an struct that represents the handler of a warehouse
 type HandlerWarehouse struct {
@@ -22,20 +27,20 @@ type RequestAddWarehouse struct {
 	// - value: quantity of the product
 	Stock map[string]int `json:"stock"`
 }
-func (h *HandlerWarehouse) AddWarehouse() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (h *HandlerWarehouse) AddWarehouse() web.Handler {
+	return func(w http.ResponseWriter, r *http.Request) (err error) {
 		// request
 		// - body: validate required client fields dynamically
-		err := validator.RequiredJSON(r.Body, "name", "stock")
+		err = web.ValidatorRequiredJSON(r.Body, "name", "stock")
 		if err != nil {
-			web.EncodeJSON(w, map[string]any{"message": "missing required fields"}, http.StatusBadRequest)
+			err = middlewares.NewError(http.StatusBadRequest, "missing required fields")
 			return
 		}
 		// - body: decode request body
 		var req RequestAddWarehouse
 		err = web.DecodeJSON(r, &req)
 		if err != nil {
-			web.EncodeJSON(w, map[string]any{"message": "invalid request body"}, http.StatusBadRequest)
+			err = middlewares.NewError(http.StatusBadRequest, "invalid request body")
 			return
 		}
 
@@ -47,12 +52,13 @@ func (h *HandlerWarehouse) AddWarehouse() http.HandlerFunc {
 		}
 		err = h.st.Add(&wh)
 		if err != nil {
-			web.EncodeJSON(w, map[string]any{"message": "error adding warehouse"}, http.StatusInternalServerError)
+			err = middlewares.NewError(http.StatusInternalServerError, "error adding warehouse")
 			return
 		}
 
 		// response
 		web.EncodeJSON(w, map[string]any{"message": "warehouse added successfully", "data": wh.Id}, http.StatusCreated)
+		return
 	}
 }
 
@@ -63,26 +69,26 @@ type RequestAddProductStock struct {
 	// quantity is the quantity of the product
 	Quantity int `json:"quantity"`
 }
-func (h *HandlerWarehouse) AddProductStock() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (h *HandlerWarehouse) AddProductStock() web.Handler {
+	return func(w http.ResponseWriter, r *http.Request) (err error) {
 		// request
 		// - body: validate required client fields dynamically
-		err := validator.RequiredJSON(r.Body, "name", "quantity")
+		err = web.ValidatorRequiredJSON(r.Body, "name", "quantity")
 		if err != nil {
-			web.EncodeJSON(w, map[string]any{"message": "missing required fields"}, http.StatusBadRequest)
+			err = middlewares.NewError(http.StatusBadRequest, "missing required fields")
 			return
 		}
 		// - body: decode request body
 		var req RequestAddProductStock
 		err = web.DecodeJSON(r, &req)
 		if err != nil {
-			web.EncodeJSON(w, map[string]any{"message": "invalid request body"}, http.StatusBadRequest)
+			err = middlewares.NewError(http.StatusBadRequest, "invalid request body")
 			return
 		}
 		// - path-param: get warehouse id
 		whId, err := web.ParamInt(r, "id")
 		if err != nil {
-			web.EncodeJSON(w, map[string]any{"message": "invalid warehouse id"}, http.StatusBadRequest)
+			err = middlewares.NewError(http.StatusBadRequest, "invalid warehouse id")
 			return
 		}
 
@@ -90,7 +96,7 @@ func (h *HandlerWarehouse) AddProductStock() http.HandlerFunc {
 		// - get warehouse
 		wh, err := h.st.FindById(whId)
 		if err != nil {
-			web.EncodeJSON(w, map[string]any{"message": "error getting warehouse"}, http.StatusInternalServerError)
+			err = middlewares.NewError(http.StatusInternalServerError, "error getting warehouse")
 			return
 		}
 		// - add product to stock
@@ -98,11 +104,12 @@ func (h *HandlerWarehouse) AddProductStock() http.HandlerFunc {
 		// - update warehouse
 		err = h.st.Update(&wh)
 		if err != nil {
-			web.EncodeJSON(w, map[string]any{"message": "error updating warehouse"}, http.StatusInternalServerError)
+			err = middlewares.NewError(http.StatusInternalServerError, "error updating warehouse")
 			return
 		}
 
 		// response
 		web.EncodeJSON(w, map[string]any{"message": "product added to warehouse successfully"}, http.StatusOK)
+		return
 	}
 }
