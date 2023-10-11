@@ -5,6 +5,12 @@ import "errors"
 var (
 	// ErrStorageWarehouseNotFound is an error that occurs when a warehouse is not found in the storage
 	ErrStorageWarehouseNotFound = errors.New("storage-warehouse: warehouse not found")
+
+	// ErrStorageWarehouseProductNotFound is an error that occurs when a product is not found in the warehouse
+	ErrStorageWarehouseProductNotFound = errors.New("storage-warehouse: product not found in the warehouse")
+
+	// ErrStorageWarehouseInvalidQuantity is an error that occurs when the quantity of a product is invalid
+	ErrStorageWarehouseInvalidQuantity = errors.New("storage-warehouse: invalid quantity")
 )
 
 type WarehouseDB struct {
