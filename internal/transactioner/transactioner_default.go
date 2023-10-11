@@ -1,17 +1,18 @@
 package transactioner
 
 import (
-	"bootcamp-web/internal/warehouse"
+	"bootcamp-web/internal"
+	"bootcamp-web/internal/storage"
 	"errors"
 )
 
 type TransactionerDefault struct {
 	// storageWarehouse is the storage of the warehouse
-	storageWarehouse warehouse.StorageWarehouse
+	storageWarehouse storage.StorageWarehouse
 }
 
 // NewTransactionerDefault returns a new instance of TransactionerDefault
-func NewTransactionerDefault(storageWarehouse warehouse.StorageWarehouse) (t *TransactionerDefault) {
+func NewTransactionerDefault(storageWarehouse storage.StorageWarehouse) (t *TransactionerDefault) {
 	t = &TransactionerDefault{
 		storageWarehouse: storageWarehouse,
 	}
@@ -19,7 +20,7 @@ func NewTransactionerDefault(storageWarehouse warehouse.StorageWarehouse) (t *Tr
 }
 
 // Fulfill processes the transaction between the order and the warehouse
-func (t *TransactionerDefault) Fullfill(order Order, warehouseName string) (err error) {
+func (t *TransactionerDefault) Fullfill(order internal.Order, warehouseName string) (err error) {
 	// validation
 	// - check if order quantity is positive
 	for _, qt := range order.Products {
@@ -60,9 +61,9 @@ func (t *TransactionerDefault) Fullfill(order Order, warehouseName string) (err 
 	err = t.storageWarehouse.Update(&wh)
 	if err != nil {
 		switch {
-		case errors.Is(err, warehouse.ErrStorageWarehouseProductNotFound):
+		case errors.Is(err, storage.ErrStorageWarehouseProductNotFound):
 			err = ErrTransactionerWarehouseProductNotFound
-		case errors.Is(err, warehouse.ErrStorageWarehouseInvalidQuantity):
+		case errors.Is(err, storage.ErrStorageWarehouseInvalidQuantity):
 			err = ErrTransactionerWarehouseProductQuantityInvalid
 		}
 		return

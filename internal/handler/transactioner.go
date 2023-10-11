@@ -1,20 +1,22 @@
-package transactioner
+package handler
 
 import (
+	"bootcamp-web/internal"
+	"bootcamp-web/internal/transactioner"
 	"bootcamp-web/platform/web"
 	"bootcamp-web/platform/web/middlewares"
 	"net/http"
 )
 
 // NewHandlerTransactioner creates a new handler of a transactioner
-func NewHandlerTransactioner(tr Transactioner) *HandlerTransactioner {
+func NewHandlerTransactioner(tr transactioner.Transactioner) *HandlerTransactioner {
 	return &HandlerTransactioner{tr: tr}
 }
 
 // HandlerTransactioner is an struct that represents the handler of a transactioner
 type HandlerTransactioner struct {
 	// tr is the transactioner
-	tr Transactioner
+	tr transactioner.Transactioner
 }
 
 type ProductsJSON struct {
@@ -53,7 +55,7 @@ func (h *HandlerTransactioner) Fulfill() web.Handler {
 
 		// process the transaction
 		// - deserialize the order
-		order := Order{
+		order := internal.Order{
 			Name:     req.Name,
 			Products: make(map[string]int),
 		}
@@ -64,15 +66,15 @@ func (h *HandlerTransactioner) Fulfill() web.Handler {
 		err = h.tr.Fullfill(order, req.WarehouseName)
 		if err != nil {
 			switch err {
-			case ErrTransactionerOrderQuantityNotPositive:
+			case transactioner.ErrTransactionerOrderQuantityNotPositive:
 				err = middlewares.NewError(http.StatusUnprocessableEntity, "quantity of a product in the order is not positive")
-			case ErrTransactionerOrderQuantityNotAvailable:
+			case transactioner.ErrTransactionerOrderQuantityNotAvailable:
 				err = middlewares.NewError(http.StatusUnprocessableEntity, "quantity of a product in the order is not available in the warehouse")
-			case ErrTransactionerWarehouseNotFound:
+			case transactioner.ErrTransactionerWarehouseNotFound:
 				err = middlewares.NewError(http.StatusUnprocessableEntity, "warehouse not found")
-			case ErrTransactionerWarehouseProductNotFound:
+			case transactioner.ErrTransactionerWarehouseProductNotFound:
 				err = middlewares.NewError(http.StatusUnprocessableEntity, "product not found in the warehouse")
-			case ErrTransactionerWarehouseProductQuantityInvalid:
+			case transactioner.ErrTransactionerWarehouseProductQuantityInvalid:
 				err = middlewares.NewError(http.StatusUnprocessableEntity, "invalid quantity of a product in the warehouse")
 			default:
 				err = middlewares.NewError(http.StatusInternalServerError, "internal server error")

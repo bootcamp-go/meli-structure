@@ -1,9 +1,12 @@
-package warehouse
+package storage
 
-import "bootcamp-web/internal/product"
+import (
+	"bootcamp-web/internal"
+	"bootcamp-web/internal/catalog"
+)
 
 // NewStorageWarehouseCatalogValidator returns a new instance of StorageWarehouseCatalogValidator
-func NewStorageWarehouseCatalogValidator(st StorageWarehouse, ct product.CatalogProduct) (s *StorageWarehouseCatalogValidator) {
+func NewStorageWarehouseCatalogValidator(st StorageWarehouse, ct catalog.CatalogProduct) (s *StorageWarehouseCatalogValidator) {
 	s = &StorageWarehouseCatalogValidator{
 		st: st,
 		ct: ct,
@@ -17,23 +20,23 @@ type StorageWarehouseCatalogValidator struct {
 	st StorageWarehouse
 
 	// ct is the catalog of products
-	ct product.CatalogProduct
+	ct catalog.CatalogProduct
 }
 
 // FindById returns the warehouse with the given Id
-func (s *StorageWarehouseCatalogValidator) FindById(id int) (w WarehouseDB, err error) {
+func (s *StorageWarehouseCatalogValidator) FindById(id int) (w internal.WarehouseDB, err error) {
 	w, err = s.st.FindById(id)
 	return
 }
 
 // FindByName returns the warehouse with the given name
-func (s *StorageWarehouseCatalogValidator) FindByName(name string) (w WarehouseDB, err error) {
+func (s *StorageWarehouseCatalogValidator) FindByName(name string) (w internal.WarehouseDB, err error) {
 	w, err = s.st.FindByName(name)
 	return
 }
 
 // Add adds a warehouse to the storage
-func (s *StorageWarehouseCatalogValidator) Add(w *WarehouseDB) (err error) {
+func (s *StorageWarehouseCatalogValidator) Add(w *internal.WarehouseDB) (err error) {
 	// check if products are in catalog
 	for pr := range w.Stock {
 		_, err = s.ct.FindProductByName(pr)
@@ -49,7 +52,7 @@ func (s *StorageWarehouseCatalogValidator) Add(w *WarehouseDB) (err error) {
 }
 
 // Update updates the warehouse with the given Id
-func (s *StorageWarehouseCatalogValidator) Update(w *WarehouseDB) (err error) {
+func (s *StorageWarehouseCatalogValidator) Update(w *internal.WarehouseDB) (err error) {
 	// check if products are in catalog
 	for pr := range w.Stock {
 		_, err = s.ct.FindProductByName(pr)

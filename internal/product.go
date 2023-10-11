@@ -1,4 +1,4 @@
-package product
+package internal
 
 // Product is a struct that represents a product
 type Product struct {

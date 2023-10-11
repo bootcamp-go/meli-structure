@@ -1,15 +1,17 @@
-package warehouse
+package storage
+
+import "bootcamp-web/internal"
 
 type StorageWarehouseMap struct {
 	// db is the database of warehouses (key: id, value: warehouse)
-	db map[int]WarehouseDB
+	db map[int]internal.WarehouseDB
 
 	// lastId is the next id to be assigned to a warehouse
 	lastId int
 }
 
 // NewStorageWarehouseMap returns a new instance of StorageWarehouseMap
-func NewStorageWarehouseMap(db map[int]WarehouseDB, lastId int) (s *StorageWarehouseMap) {
+func NewStorageWarehouseMap(db map[int]internal.WarehouseDB, lastId int) (s *StorageWarehouseMap) {
 	s = &StorageWarehouseMap{
 		db:     db,
 		lastId: lastId,
@@ -18,7 +20,7 @@ func NewStorageWarehouseMap(db map[int]WarehouseDB, lastId int) (s *StorageWareh
 }
 
 // FindById returns the warehouse with the given Id
-func (s *StorageWarehouseMap) FindById(id int) (w WarehouseDB, err error) {
+func (s *StorageWarehouseMap) FindById(id int) (w internal.WarehouseDB, err error) {
 	// get warehouse
 	w, ok := s.db[id]
 	if !ok {
@@ -30,7 +32,7 @@ func (s *StorageWarehouseMap) FindById(id int) (w WarehouseDB, err error) {
 }
 
 // FindByName returns the warehouse with the given name
-func (s *StorageWarehouseMap) FindByName(name string) (w WarehouseDB, err error) {
+func (s *StorageWarehouseMap) FindByName(name string) (w internal.WarehouseDB, err error) {
 	// check if warehouse exists
 	var exists bool
 	var id int
@@ -51,7 +53,7 @@ func (s *StorageWarehouseMap) FindByName(name string) (w WarehouseDB, err error)
 }
 
 // Add adds a warehouse to the storage
-func (s *StorageWarehouseMap) Add(w *WarehouseDB) (err error) {
+func (s *StorageWarehouseMap) Add(w *internal.WarehouseDB) (err error) {
 	// set id
 	s.lastId++
 	w.Id = s.lastId
@@ -62,7 +64,7 @@ func (s *StorageWarehouseMap) Add(w *WarehouseDB) (err error) {
 }
 
 // Update updates the warehouse with the given Id
-func (s *StorageWarehouseMap) Update(w *WarehouseDB) (err error) {
+func (s *StorageWarehouseMap) Update(w *internal.WarehouseDB) (err error) {
 	// check if warehouse exists
 	var exists bool
 	var id int

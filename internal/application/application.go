@@ -1,9 +1,11 @@
 package application
 
 import (
-	"bootcamp-web/internal/product"
+	"bootcamp-web/internal"
+	"bootcamp-web/internal/catalog"
+	"bootcamp-web/internal/handler"
+	"bootcamp-web/internal/storage"
 	"bootcamp-web/internal/transactioner"
-	"bootcamp-web/internal/warehouse"
 	"bootcamp-web/platform/web"
 	"bootcamp-web/platform/web/middlewares"
 	"context"
@@ -59,24 +61,24 @@ func (a *Application) Stop() error {
 func registerRoutes(m *web.Muxer) {
 	// dependencies
 	// - products
-	catalogProducts := product.NewCatalogProductMap(
-		make(map[string]product.Product),
+	catalogProducts := catalog.NewCatalogProductMap(
+		make(map[string]internal.Product),
 	)
 	// - warehouse
-	warehouseStorage := warehouse.NewStorageWarehouseDefaultValidator(
-		warehouse.NewStorageWarehouseCatalogValidator(
-			warehouse.NewStorageWarehouseMap(
-				make(map[int]warehouse.WarehouseDB),
+	warehouseStorage := storage.NewStorageWarehouseDefaultValidator(
+		storage.NewStorageWarehouseCatalogValidator(
+			storage.NewStorageWarehouseMap(
+				make(map[int]internal.WarehouseDB),
 				0,
 			),
 			catalogProducts,
 		),
 	)
-	warehouseHandler := warehouse.NewHandlerWarehouse(warehouseStorage)
+	warehouseHandler := handler.NewHandlerWarehouse(warehouseStorage)
 
 	// - transactioner
 	tr := transactioner.NewTransactionerDefault(warehouseStorage)
-	trHandler := transactioner.NewHandlerTransactioner(tr)
+	trHandler := handler.NewHandlerTransactioner(tr)
 
 	// routes
 	// - warehouse

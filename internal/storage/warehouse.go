@@ -1,6 +1,9 @@
-package warehouse
+package storage
 
-import "errors"
+import (
+	"bootcamp-web/internal"
+	"errors"
+)
 
 var (
 	// ErrStorageWarehouseNotFound is an error that occurs when a warehouse is not found in the storage
@@ -13,30 +16,17 @@ var (
 	ErrStorageWarehouseInvalidQuantity = errors.New("storage-warehouse: invalid quantity")
 )
 
-type WarehouseDB struct {
-	// Id is the unique identifier of the warehouse
-	Id int
-
-	// Name is the name of the warehouse
-	Name string
-
-	// Stock is the stock of products in the warehouse with the quantity of each product
-	// - key: product name
-	// - value: quantity
-	Stock map[string]int
-}
-
 // StorageWarehouse is an interface that represents a storage for warehouses
 type StorageWarehouse interface {
 	// FindById returns the warehouse with the given Id
-	FindById(id int) (w WarehouseDB, err error)
+	FindById(id int) (w internal.WarehouseDB, err error)
 
 	// FindByName returns the warehouse with the given name
-	FindByName(name string) (w WarehouseDB, err error)
+	FindByName(name string) (w internal.WarehouseDB, err error)
 
 	// Add adds a warehouse to the storage
-	Add(w *WarehouseDB) (err error)
+	Add(w *internal.WarehouseDB) (err error)
 
 	// Update updates the warehouse with the given Id
-	Update(w *WarehouseDB) (err error)
+	Update(w *internal.WarehouseDB) (err error)
 }

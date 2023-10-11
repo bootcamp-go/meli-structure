@@ -1,20 +1,22 @@
-package warehouse
+package handler
 
 import (
+	"bootcamp-web/internal"
+	"bootcamp-web/internal/storage"
 	"bootcamp-web/platform/web"
 	"bootcamp-web/platform/web/middlewares"
 	"net/http"
 )
 
 // NewHandlerWarehouse creates a new handler of a warehouse
-func NewHandlerWarehouse(st StorageWarehouse) *HandlerWarehouse {
+func NewHandlerWarehouse(st storage.StorageWarehouse) *HandlerWarehouse {
 	return &HandlerWarehouse{st: st}
 }
 
 // HandlerWarehouse is an struct that represents the handler of a warehouse
 type HandlerWarehouse struct {
 	// storage is the storage of the warehouse
-	st StorageWarehouse
+	st storage.StorageWarehouse
 }
 
 // AddWarehouse is a handler that adds a warehouse to the storage
@@ -46,7 +48,7 @@ func (h *HandlerWarehouse) AddWarehouse() web.Handler {
 
 		// process
 		// - create warehouse
-		wh := WarehouseDB{
+		wh := internal.WarehouseDB{
 			Name: req.Name,
 			Stock: req.Stock,
 		}
